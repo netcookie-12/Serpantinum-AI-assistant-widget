@@ -150,11 +150,6 @@ Settings saved from the gear panel (prompt, command mode, model, SearXNG host, g
 - **The model uses curl instead of searching:** with web search on, `curl`/`wget` to outside URLs are refused and the model is told to use `web_search` / `fetch_page`.
 - **Greeting never appears:** check that Ollama is up, the greeting is on in the gear panel, and the model can answer quickly. It retries a few times after login.
 
-## Tested on
-
-- Serpantinum version: `<fill in>`
-- Compositor: `<fill in>`
-- Ollama version / models: `<fill in>`
 
 ## License
 
