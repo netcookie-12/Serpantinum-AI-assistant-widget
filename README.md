@@ -139,7 +139,7 @@ Settings saved from the gear panel (prompt, command mode, model, SearXNG host, g
 
 ## License
 
-Copyright (C) 2026 YOUR NAME
+Copyright (C) 2026 netcookie-12
 
 Licensed under the **GNU Affero General Public License, version 3 or (at your option) any later version** (AGPL-3.0-or-later), the same license as Serpantinum. See [LICENSE](LICENSE).
 
