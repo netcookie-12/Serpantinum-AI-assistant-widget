@@ -4,6 +4,9 @@ An **unofficial** community widget for [Serpantinum](https://github.com/ilyamiro
 
 > Not affiliated with or endorsed by the Serpantinum project.
 
+<!-- Add a screenshot at docs/screenshot.png, or delete this line. -->
+![Screenshot](docs/screenshot.png)
+
 ## Features
 
 - **Local chat** with any Ollama model, streamed token by token. Click the model chip in the header to cycle through your installed models.
@@ -15,6 +18,7 @@ An **unofficial** community widget for [Serpantinum](https://github.com/ilyamiro
 - **Web search** (`web_search`) through your own SearXNG instance.
 - **Page fetching** (`fetch_page`): the model can open a result and read the page text.
 - **Startup greeting**: a short, friendly question generated from the day, time and weather each time you boot (for example "Up for some late night gaming?"). Shown once per boot.
+- **Memory**: after a chat of more than 4 of your messages, a one-line summary is saved to a plain text file and given to the model in later chats, so it can remember what you were working on.
 - Stays inert while you rearrange widgets in the layout editor, so dragging works normally.
 
 ## Requirements
@@ -95,6 +99,22 @@ Open the gear panel in the widget, set the host (default `http://localhost:8888`
 - The **bin** clears the conversation. The **stop** button (shown while it works) cancels the response and any running command.
 - Commands, searches and page fetches appear as cards in the chat so you can see exactly what happened.
 
+## Memory
+
+When a chat has more than `summaryMinReplies` messages from you (default 4), the widget asks the model for a **single short line** about what was worth remembering and appends it to `~/.local/state/ai-widget/memory.md`:
+
+```
+- 2026-10-31: Built an Ollama chat widget for Serpantinum; added SearXNG search and a startup greeting.
+```
+
+- **When does a chat count as finished?** When you press the bin (clear), after `summaryIdleMinutes` (default 10) without activity, or at the next start if the PC was shut down mid-chat. While a chat is running, the widget keeps a copy of it in `~/.local/state/ai-widget/session.json` so that last case works; the file is deleted once the chat is summarized.
+- **How is it used?** The 15 most recent entries (up to 1,500 characters) are added to the system prompt, marked as possibly outdated notes to use only when relevant.
+- **Short chats are never summarized**, and the model is told to skip secrets such as passwords and keys and to answer `NONE` when nothing is worth keeping.
+- **It's a plain file.** Open or edit it from the gear panel (**Open file**), or delete lines yourself. **Forget all** erases it (click twice to confirm). The file is trimmed to its last 200 entries.
+- Memory can be switched off in the gear panel. Summaries are written by `memoryModel` if set, otherwise `greetingModel`, otherwise the chat model, so a small model keeps this cheap.
+
+> Privacy: the summary prompt and the session copy contain the text of your conversation, and everything stays on your machine (Ollama is local). Anyone with access to your account can read `memory.md` and `session.json`.
+
 ## Safety (please read)
 
 This widget lets a language model run commands on your computer and read content from the internet. Treat that seriously.
@@ -115,11 +135,15 @@ Most options are properties at the top of `AiFace.qml`:
 | `searxHost` | `http://localhost:8888` | SearXNG address (also editable in the gear panel) |
 | `greetingModel` | `""` | Model for the startup greeting. Empty uses the chat model. Set a small model (for example `llama3.2:3b`) so boots stay fast |
 | `tempUnit` | `"C"` | Unit of the shell's weather temperature (`"C"` or `"F"`), used in the greeting |
+| `memoryModel` | `""` | Model used for chat summaries. Empty falls back to `greetingModel`, then the chat model |
+| `summaryMinReplies` | `4` | A chat is summarized only if it has **more** than this many messages from you |
+| `summaryIdleMinutes` | `10` | Minutes of inactivity before a chat is treated as finished |
+| `maxMemoryEntries` / `maxMemoryChars` | `15` / `1500` | How much memory is given to the model |
 | `cmdTimeout` | `30` | Seconds before a command is killed |
 | `maxToolRounds` | `12` | Tool-call loops allowed per message |
 | `maxOutputChars` / `maxFetchChars` | `4000` / `6000` | Output and page text sent back to the model |
 
-Settings saved from the gear panel (prompt, command mode, model, SearXNG host, greeting) are stored in `~/.local/state/ai-widget/settings.json`, and these override the defaults in the file. The last greeting and boot ID are kept in `~/.local/state/ai-widget/greeting.json`; delete it and reload the shell to force a new greeting.
+Settings saved from the gear panel (prompt, command mode, model, SearXNG host, greeting, memory) are stored in `~/.local/state/ai-widget/settings.json`, and these override the defaults in the file. The last greeting and boot ID are kept in `~/.local/state/ai-widget/greeting.json`; delete it and reload the shell to force a new greeting. Memory lives in `memory.md` and `session.json` in the same folder (see [Memory](#memory)).
 
 ## Troubleshooting
 
@@ -133,9 +157,9 @@ Settings saved from the gear panel (prompt, command mode, model, SearXNG host, g
 
 ## Tested on
 
-- Serpantinum version: `v2.3.0`
-- Compositor: `v0.56.2`
-- Ollama version / models: `v0.40.11; qwen3.5:9b`
+- Serpantinum version: `<fill in>`
+- Compositor: `<fill in>`
+- Ollama version / models: `<fill in>`
 
 ## License
 
