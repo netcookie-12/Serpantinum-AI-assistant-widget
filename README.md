@@ -2,11 +2,6 @@
 
 An **unofficial** community widget for [Serpantinum](https://github.com/ilyamiro/serpantinum): a chat assistant that runs on your own machine through [Ollama](https://ollama.com), with optional web search ([SearXNG](https://github.com/searxng/searxng)) and the ability to run shell commands, with approval controls.
 
-> Not affiliated with or endorsed by the Serpantinum project.
-
-<!-- Add a screenshot at docs/screenshot.png, or delete this line. -->
-![Screenshot](docs/screenshot.png)
-
 ## Features
 
 - **Local chat** with any Ollama model, streamed token by token. Click the model chip in the header to cycle through your installed models.
