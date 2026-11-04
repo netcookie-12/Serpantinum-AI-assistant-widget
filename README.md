@@ -2,7 +2,27 @@
 
 An **unofficial** community widget for [Serpantinum](https://github.com/ilyamiro/serpantinum): a chat assistant that runs on your own machine through [Ollama](https://ollama.com), with optional web search ([SearXNG](https://github.com/searxng/searxng)) and the ability to run shell commands, with approval controls.
 
-## Features
+
+## Versions
+
+Both editions provide Ollama chat, model switching, an editable system prompt, local command controls, SearXNG search and page fetching, startup greetings, conversation memory, and layout-editor drag support.
+
+### V1: Repository edition
+
+The current repository version is the single-file `AiFace.qml` at the repository root. It provides the shared features above, but has no Python companion, voice controls, screen vision, or remote SSH tool. Follow the V1 install instructions below.
+
+### V2: Split-backend edition
+
+The newer edition consists of `AiFace.qml` and `AiBackend.py` in the same directory. The QML starts the Python backend and exchanges requests with it over standard input/output. V2 adds:
+
+- Voice input using local recording and Whisper, plus spoken replies through Kokoro, Piper, or espeak-ng.
+- Screen capture and vision through `grim`, either on request or with each message.
+- Optional SSH access to one configured server. Remote commands always require Run/Deny approval; SSH uses strict host-key checking, public-key authentication, a non-root account, and no agent or port forwarding.
+- A masked passphrase prompt that loads the key into `ssh-agent` without saving the passphrase in settings or chat.
+
+V2 is currently the customized local copy and is not included in this repository yet. When adding it, place both files under `v2/`; do not combine the V1 QML with the V2 backend.
+
+## Shared features
 
 - **Local chat** with any Ollama model, streamed token by token. Click the model chip in the header to cycle through your installed models.
 - **Editable system prompt** from the gear panel, saved between sessions.
@@ -23,7 +43,9 @@ An **unofficial** community widget for [Serpantinum](https://github.com/ilyamiro
 - A model that supports **tool calling** if you want commands or web access. Check with `ollama show <model>` and look for `tools` under capabilities. Models without it still work for plain chat.
 - A [Nerd Font](https://www.nerdfonts.com) (the widget uses icon glyphs through the shell's theme font).
 - Optional: a SearXNG instance with JSON output enabled (see below).
-- `curl` and `bash` (both are used directly).
+- **V1:** `curl` and `bash`.
+- **V2:** Python 3 (standard library only) and `bash` for local commands.
+- **Optional V2 SSH:** OpenSSH tools (`ssh`, `ssh-add`, and `ssh-agent`).
 
 ## Install
 
@@ -31,7 +53,7 @@ An **unofficial** community widget for [Serpantinum](https://github.com/ilyamiro
    ```bash
    find ~ -name WidgetRegistry.qml 2>/dev/null
    ```
-2. Create `faces/ai/` next to the other faces and copy the widget in:
+2. Create `faces/ai/` next to the other faces. For V1, copy the repository's `AiFace.qml`:
    ```
    <widgets folder>/faces/ai/AiFace.qml
    ```
@@ -50,6 +72,34 @@ An **unofficial** community widget for [Serpantinum](https://github.com/ilyamiro
    },
    ```
 4. Restart the shell, open the widget editor, and add **AI Assistant** from the toolbar.
+
+## V2 setup
+
+V2 is the split-backend edition in the `v2/` folder. Install `v2/AiFace.qml` and `v2/AiBackend.py` together in `faces/ai/`. Python 3 is required; no Python packages need to be installed. Quickshell starts the backend when the face loads.
+
+### Voice
+
+For microphone input, install either `pw-record` (PipeWire) or `arecord` (ALSA), plus `whisper-cli`/`whisper.cpp` and a Whisper `.bin` model. The default model path is `~/.local/share/whisper/ggml-base.en.bin`; set the model path in the gear panel if yours is elsewhere.
+
+For spoken replies, choose an engine in the gear panel:
+
+- **Kokoro:** run a local Kokoro-FastAPI server (default `http://127.0.0.1:8880`) and set its voice if needed.
+- **Piper:** install Piper and a voice `.onnx` file; its matching `.onnx.json` file must be beside it.
+- **espeak-ng:** used as a fallback when a local Piper voice is unavailable.
+
+Audio playback also needs one of `pw-play`, `paplay`, or `aplay`. Recording and speech recognition run locally; the temporary recording is removed after transcription.
+
+### Screen vision
+
+Install `grim` and use an Ollama model that supports image input. In the gear panel, choose **When needed** or **Every message** and select a monitor scope. Screenshots are captured locally and attached to the chat request; disable screen vision when it is not needed.
+
+### Remote SSH
+
+1. Install OpenSSH client tools (`ssh`, `ssh-add`, and `ssh-agent`). Create a dedicated, unprivileged account on the server; the widget rejects the `root` account.
+2. Connect to the server from a terminal once and verify its host-key fingerprint with the server administrator before accepting it. V2 uses strict `known_hosts` checking and will refuse an unknown or changed key.
+3. Open the widget's gear panel, turn on **Remote server access (SSH)**, and enter the host or SSH alias, user, port, and optionally the private-key file path (for example `~/.ssh/id_ed25519`). Never enter or store the key's passphrase in settings.
+4. Save the settings. If no usable agent key is loaded, V2 starts or reuses an `ssh-agent` and opens a masked passphrase prompt. The passphrase is passed to `ssh-add`, not saved, and the key loaded into a widget-started agent expires after 8 hours. If a desktop agent already has the key loaded, no prompt is shown.
+5. When the model requests a remote command, review the target and command, then click **Run** or **Deny**. Every remote command requires approval; SSH agent and port forwarding are disabled.
 
 ## Ollama setup
 
@@ -117,6 +167,7 @@ This widget lets a language model run commands on your computer and read content
 - **Start in "Ask first".** Auto-run mode uses a pattern-based filter to decide what looks safe. It is a speed bump, **not a sandbox**: a creative command can slip past it.
 - **Prompt injection is real.** A web page or file the model reads can contain text written to trick it into running commands. Results and pages are labelled as untrusted and the model is told to ignore instructions in them, but models can still be fooled. Keep commands on "Ask first" whenever web access is enabled, and read each command before you click Run.
 - Commands run as **your user** with a 30 second timeout, no input, and truncated output. `sudo` can't work (there is no terminal), by design.
+- In the **local split-backend edition**, remote SSH is off by default. It requires a configured non-root account, strict `known_hosts` verification, and public-key authentication. Every remote command requires approval; agent and port forwarding are disabled. The widget-started `ssh-agent` keeps keys for up to 8 hours. A passphrase is entered into a masked prompt and sent to `ssh-add`; it is not saved in settings or chat. Unlock your key only when you intend to use remote access.
 - `fetch_page` refuses localhost and private network addresses by hostname. That check is best-effort and does not re-check redirects or DNS.
 - You are responsible for what you let it run and for following the terms of any site you fetch from.
 
