@@ -20,7 +20,7 @@ The newer edition consists of `AiFace.qml` and `AiBackend.py` in the same direct
 - Optional SSH access to one configured server. Remote commands always require Run/Deny approval; SSH uses strict host-key checking, public-key authentication, a non-root account, and no agent or port forwarding.
 - A masked passphrase prompt that loads the key into `ssh-agent` without saving the passphrase in settings or chat.
 
-V2 is currently the customized local copy and is not included in this repository yet. When adding it, place both files under `v2/`; do not combine the V1 QML with the V2 backend.
+V2 is currently a experimental version. When adding it, place both files under `v2/`; do not combine the V1 QML with the V2 backend.
 
 ## Shared features
 
